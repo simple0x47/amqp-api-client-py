@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hachling.build"
+
+[project]
+name = "amqp-api-client-py"
+version = "0.0.1"
+authors = [
+    { name="aio_pika's developers" },
+    { name="Gabriel Amihalachioaie", email="gabriel@simpleg.eu"}
+]
+description = "Basic AMQP client for API testing purposes"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/simple0x47/amqp-api-client-py"

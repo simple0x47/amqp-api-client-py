@@ -11,7 +11,7 @@ from typing import MutableMapping
 AMQP_API_CONNECTION_URI_ENV = 'AMQP_API_CONNECTION_URI'
 
 
-class AmqpApi(object):
+class AmqpInputApi(object):
     def __init__(self, request_amqp_config, response_amqp_config):
         self.amqp_uri = os.environ.get(AMQP_API_CONNECTION_URI_ENV)
         self.request_amqp_config = request_amqp_config

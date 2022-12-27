@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "amqp-api-client-py"
-version = "0.0.1"
+name = "amqp_api_client_py"
+version = "0.1.0"
 authors = [
     { name="aio_pika's developers" },
     { name="Gabriel Amihalachioaie", email="gabriel@simpleg.eu"}

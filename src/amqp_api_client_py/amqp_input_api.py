@@ -11,7 +11,7 @@ from typing import MutableMapping
 AMQP_API_CONNECTION_URI_ENV = 'AMQP_API_CONNECTION_URI'
 
 
-class AmqpApi(object):
+class AmqpInputApi(object):
     def __init__(self, request_amqp_config, response_amqp_config):
         self.amqp_uri = os.environ.get(AMQP_API_CONNECTION_URI_ENV)
         self.request_amqp_config = request_amqp_config
@@ -28,17 +28,19 @@ class AmqpApi(object):
                                                               durable=self.request_amqp_config["queue"]["durable"],
                                                               exclusive=self.request_amqp_config["queue"]["exclusive"],
                                                               passive=self.request_amqp_config["queue"]["passive"],
-                                                              auto_delete=self.request_amqp_config["queue"]["auto_delete"],
+                                                              auto_delete=self.request_amqp_config["queue"][
+                                                                  "auto_delete"],
                                                               arguments=self.request_amqp_config["queue"]["arguments"])
 
         self.response_queue = await self.channel.declare_queue(self.response_amqp_config["queue"]["name"],
                                                                durable=self.response_amqp_config["queue"]["durable"],
-                                                               exclusive=self.response_amqp_config["queue"]["exclusive"],
+                                                               exclusive=self.response_amqp_config["queue"][
+                                                                   "exclusive"],
                                                                passive=self.response_amqp_config["queue"]["passive"],
-                                                               auto_delete=self.response_amqp_config["queue"]["auto_delete"],
-                                                               arguments=self.response_amqp_config["queue"]["arguments"])
-
-        await self.response_queue.consume(self.on_response)
+                                                               auto_delete=self.response_amqp_config["queue"][
+                                                                   "auto_delete"],
+                                                               arguments=self.response_amqp_config["queue"][
+                                                                   "arguments"])
 
         return self
 
@@ -63,5 +65,18 @@ class AmqpApi(object):
                                   correlation_id=correlation_id,
                                   reply_to=self.response_queue.name)
 
-        await self.channel.default_exchange.publish(request_message, routing_key=self.request_queue.name)
+        await self.channel.default_exchange.publish(request_message, routing_key=self.request_queue.name,
+                                                    mandatory=self.request_amqp_config["channel"]["publish"][
+                                                        "mandatory"],
+                                                    immediate=self.request_amqp_config["channel"]["publish"][
+                                                        "immediate"],
+                                                    timeout=self.request_amqp_config["channel"]["publish"]["timeout"])
+
+        await self.response_queue.consume(self.on_response,
+                                          self.response_amqp_config["channel"]["consume"]["no_ack"],
+                                          self.response_amqp_config["channel"]["consume"]["exclusive"],
+                                          self.response_amqp_config["channel"]["consume"]["arguments"],
+                                          self.response_amqp_config["channel"]["consume"]["consumer_tag"],
+                                          self.response_amqp_config["channel"]["consume"]["timeout"])
+
         return await future

@@ -5,7 +5,7 @@ import asyncio
 import json
 
 from aio_pika import Message, connect
-from aio_pika.abc import AbstractIncomingMessage, AbstractQueue
+from aio_pika.abc import AbstractIncomingMessage
 from typing import MutableMapping
 
 AMQP_API_CONNECTION_URI_ENV = 'AMQP_API_CONNECTION_URI'
@@ -14,7 +14,7 @@ AMQP_API_CONNECTION_URI_ENV = 'AMQP_API_CONNECTION_URI'
 class AmqpInputApi(object):
     def __init__(self, request_amqp_config, response_amqp_config):
         self.amqp_uri = os.environ.get(AMQP_API_CONNECTION_URI_ENV)
-        self.request_amqp_config = request_amqp_config
+        self.request_queue
         self.response_amqp_config = response_amqp_config
         self.loop = asyncio.get_running_loop()
         self.futures: MutableMapping[str, asyncio.Future] = {}
@@ -24,13 +24,7 @@ class AmqpInputApi(object):
 
         self.channel = await self.connection.channel()
 
-        self.request_queue = await self.channel.declare_queue(self.request_amqp_config["queue"]["name"],
-                                                              durable=self.request_amqp_config["queue"]["durable"],
-                                                              exclusive=self.request_amqp_config["queue"]["exclusive"],
-                                                              passive=self.request_amqp_config["queue"]["passive"],
-                                                              auto_delete=self.request_amqp_config["queue"][
-                                                                  "auto_delete"],
-                                                              arguments=self.request_amqp_config["queue"]["arguments"])
+        self.request_queue = self.request_amqp_config["queue"]["name"]
 
         self.response_queue = await self.channel.declare_queue(self.response_amqp_config["queue"]["name"],
                                                                durable=self.response_amqp_config["queue"]["durable"],
@@ -65,7 +59,7 @@ class AmqpInputApi(object):
                                   correlation_id=correlation_id,
                                   reply_to=self.response_queue.name)
 
-        await self.channel.default_exchange.publish(request_message, routing_key=self.request_queue.name,
+        await self.channel.default_exchange.publish(request_message, routing_key=self.request_queue,
                                                     mandatory=self.request_amqp_config["channel"]["publish"][
                                                         "mandatory"],
                                                     immediate=self.request_amqp_config["channel"]["publish"][
